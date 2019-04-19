@@ -30,7 +30,7 @@ properties:
     maximum: 10
   zone:
     type: string
-    default: us-central1-f
+    default: us-east1-b
     x-googleProperty:
       type: GCE_ZONE
   machineType:
@@ -65,6 +65,9 @@ properties:
     default: default
     x-googleProperty:
       type: GCE_NETWORK
+      gceNetwork:
+        allowSharedVpcs: True
+        machineTypeProperty: machineType
   subnetwork:
     type: string
     x-googleProperty:
@@ -74,10 +77,12 @@ properties:
         networkProperty: network
   externalIP:
     type: string
-    enum:
-      - Ephemeral
-      - None
-    default: Ephemeral
+    default: EPHEMERAL
+    x-googleProperty:
+      type: GCE_EXTERNAL_IP
+      gceExternalIp:
+        networkProperty: network
+        notConfigurable: False
   bootDiskType:
     type: string
     default: pd-standard
@@ -99,3 +104,9 @@ properties:
     type: string
   generatedPassword2:
     type: string
+  enableStackdriverLogging:
+    type: boolean
+    default: False
+  enableStackdriverMonitoring:
+    type: boolean
+    default: True

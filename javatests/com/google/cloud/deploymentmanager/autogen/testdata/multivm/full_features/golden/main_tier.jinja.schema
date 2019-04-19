@@ -34,7 +34,7 @@ properties:
     maximum: 10
   zone:
     type: string
-    default: us-central1-f
+    default: us-east1-b
     x-googleProperty:
       type: GCE_ZONE
   image:
@@ -57,6 +57,9 @@ properties:
     default: default
     x-googleProperty:
       type: GCE_NETWORK
+      gceNetwork:
+        allowSharedVpcs: True
+        machineTypeProperty: machineType
   subnetwork:
     type: string
     x-googleProperty:
@@ -66,10 +69,12 @@ properties:
         networkProperty: network
   externalIP:
     type: string
-    enum:
-      - Ephemeral
-      - None
-    default: None
+    default: NONE
+    x-googleProperty:
+      type: GCE_EXTERNAL_IP
+      gceExternalIp:
+        networkProperty: network
+        notConfigurable: False
   enableCloudReadonlyApi:
     type: boolean
     default: True
@@ -151,18 +156,42 @@ properties:
   enableTcp80:
     type: boolean
     default: True
+    x-googleProperty:
+      type: GCE_FIREWALL
+      gceFirewall:
+        networkProperty: network
   tcp80SourceRanges:
     type: string
+    x-googleProperty:
+      type: GCE_FIREWALL_RANGE
+      gceFirewallRange:
+        firewallProperty: enableTcp80
   enableTcp443:
     type: boolean
     default: True
+    x-googleProperty:
+      type: GCE_FIREWALL
+      gceFirewall:
+        networkProperty: network
   tcp443SourceRanges:
     type: string
+    x-googleProperty:
+      type: GCE_FIREWALL_RANGE
+      gceFirewallRange:
+        firewallProperty: enableTcp443
   enableUdp:
     type: boolean
     default: True
+    x-googleProperty:
+      type: GCE_FIREWALL
+      gceFirewall:
+        networkProperty: network
   udpSourceRanges:
     type: string
+    x-googleProperty:
+      type: GCE_FIREWALL_RANGE
+      gceFirewallRange:
+        firewallProperty: enableUdp
   input_domain:
     type: string
     default: google.com
@@ -203,3 +232,9 @@ properties:
     type: string
   tier2_instanceCount:
     type: integer
+  enableStackdriverLogging:
+    type: boolean
+    default: False
+  enableStackdriverMonitoring:
+    type: boolean
+    default: True

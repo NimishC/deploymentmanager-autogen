@@ -32,12 +32,6 @@ input:
       {let $acceleratorZoneSubtext kind="text"}{call display.acceleratorZoneSubtext/}{/let}
       {$acceleratorZoneSubtext |indent: 6, true}{nil}
       {/if}
-    - name: network
-      title: Network name
-      section: NETWORKING
-    - name: subnetwork
-      title: Subnetwork name
-      section: NETWORKING
 
     {for $tier in $spec.tiersList}
     {let $tierProperties kind="text"}{call .displayTierProperties}{param spec: $tier/}{/call}{/let}
@@ -59,6 +53,15 @@ input:
     {/for}
     {/if}
 
+    {if $spec.stackdriver}
+    {let $stackdriverDisplay kind="text"}
+      {call display.stackdriverDisplay}
+        {param stackdriver: $spec.stackdriver/}
+      {/call}
+    {/let}
+    {$stackdriverDisplay |indent: 4, true}{nil}
+    {/if}
+
   sections:
     {call display.topSections}{param spec: $spec.deployInput/}{/call}{nil}
 
@@ -66,24 +69,26 @@ input:
     - name: {call display.tierSectionName}{param spec: $tier/}{/call}
       title: {$tier.title |yamlprimitive: 6}
     {/for}
-    - name: NETWORKING
-      title: Networking
 
     {call display.bottomSections}{param spec: $spec.deployInput/}{/call}{nil}
 
-  {let $firewallBooleanGroups kind="text"}
-    {call display.firewallBooleanGroups}{param multiVmSpec: $spec/}{/call}
-  {/let}
+    {if $spec.stackdriver}
+    {let $stackdriverBottomSections kind="text"}
+      {call display.stackdriverBottomSections}
+        {param stackdriver: $spec.stackdriver/}
+      {/call}
+    {/let}
+    {$stackdriverBottomSections |indent: 4, true}{nil}
+    {/if}
+
   {let $authScopeBooleanGroups kind="text"}
     {call display.authScopeBooleanGroups}{param multiVmSpec: $spec/}{/call}
   {/let}
   {let $customBooleanGroups kind="text"}
     {call display.customBooleanGroups}{param spec: $spec.deployInput/}{/call}
   {/let}
-  {if (strLen($firewallBooleanGroups) +
-       strLen($authScopeBooleanGroups)) > 0}
+  {if (strLen($authScopeBooleanGroups) + strLen($customBooleanGroups)) > 0}
   boolean_groups:
-    {$firewallBooleanGroups |indent: 4, true}{nil}
     {$authScopeBooleanGroups |indent: 4, true}{nil}
     {$customBooleanGroups |indent: 4, true}{nil}
   {/if}
@@ -285,45 +290,25 @@ section: {call display.tierSectionName}{param spec: $spec/}{/call}{nil}
   {$section}
 {/for}
 
+- name: {'network' |tierprefixed: $spec}
+  title: Network name
+  {$section}
+- name: {'subnetwork' |tierprefixed: $spec}
+  title: Subnetwork name
+  {$section}
+
 - name: {'externalIP' |tierprefixed: $spec}
   title: External IP
   tooltip: 'An external IP address associated with this instance. Selecting "None" will result in the instance having no external internet access. <a href="https://cloud.google.com/compute/docs/configure-instance-ip-addresses">Learn more</a>'
   {$section}
-  level: 1
 
-{for $firewallRule in $spec.firewallRulesList}
-{if $firewallRule.allowedSource == proto.FirewallRuleSpec.TrafficSource.PUBLIC}
-{let $propName kind="text"}
-  {call utilities.firewallRuleSourceRangesPropName}
-    {param spec: $firewallRule/}
+{let $firewallDisplayProperties kind="text"}
+  {call display.firewallDisplayProperties}
+    {param firewallsList: $spec.firewallRulesList/}
     {param tierSpec: $spec/}
   {/call}
 {/let}
-{let $firewallTitle kind="text"}{call utilities.firewallRuleTitle}{param spec: $firewallRule/}{/call}{/let}
-- name: {$propName}
-  title: Source IP ranges for {$firewallTitle} traffic
-  tooltip: 'Traffic is only allowed from sources within these IP address ranges. Use CIDR notation when entering ranges. <a href="https://cloud.google.com/compute/docs/networking#firewalls">Learn more</a>'
-  placeholder: '0.0.0.0/0, 192.169.0.2/24'
-  {$section}
-  level: 1
-{/if}
-{/for}
-
-{for $firewallRule in $spec.firewallRulesList}
-{if $firewallRule.allowedSource == proto.FirewallRuleSpec.TrafficSource.PUBLIC}
-{let $propName kind="text"}
-  {call utilities.firewallRulePropName}
-    {param spec: $firewallRule/}
-    {param tierSpec: $spec/}
-  {/call}
-{/let}
-{let $firewallTitle kind="text"}{call utilities.firewallRuleTitle}{param spec: $firewallRule/}{/call}{/let}
-- name: {$propName}
-  title: Allow {$firewallTitle} traffic
-  {$section}
-  boolean_group: {call display.firewallBooleanGroupName}{param tier: $spec/}{/call}
-{/if}
-{/for}
+{$firewallDisplayProperties}{nil}
 
 {if $spec.ipForwarding}
 - name: {'ipForward' |tierprefixed: $spec}

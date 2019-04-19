@@ -72,6 +72,9 @@ properties:
     default: default
     x-googleProperty:
       type: GCE_NETWORK
+      gceNetwork:
+        allowSharedVpcs: True
+        machineTypeProperty: machineType
   subnetwork:
     type: string
     x-googleProperty:
@@ -81,10 +84,12 @@ properties:
         networkProperty: network
   externalIP:
     type: string
-    enum:
-      - Ephemeral
-      - None
-    default: Ephemeral
+    default: EPHEMERAL
+    x-googleProperty:
+      type: GCE_EXTERNAL_IP
+      gceExternalIp:
+        networkProperty: network
+        notConfigurable: False
   bootDiskType:
     type: string
     default: pd-standard
@@ -148,18 +153,42 @@ properties:
   enableTcp80:
     type: boolean
     default: True
+    x-googleProperty:
+      type: GCE_FIREWALL
+      gceFirewall:
+        networkProperty: network
+  tcp80SourceRanges:
+    type: string
+    x-googleProperty:
+      type: GCE_FIREWALL_RANGE
+      gceFirewallRange:
+        firewallProperty: enableTcp80
   enableTcp443:
     type: boolean
     default: True
+    x-googleProperty:
+      type: GCE_FIREWALL
+      gceFirewall:
+        networkProperty: network
+  tcp443SourceRanges:
+    type: string
+    x-googleProperty:
+      type: GCE_FIREWALL_RANGE
+      gceFirewallRange:
+        firewallProperty: enableTcp443
   enableIcmp:
     type: boolean
     default: True
-  tcp80SourceRanges:
-    type: string
-  tcp443SourceRanges:
-    type: string
+    x-googleProperty:
+      type: GCE_FIREWALL
+      gceFirewall:
+        networkProperty: network
   icmpSourceRanges:
     type: string
+    x-googleProperty:
+      type: GCE_FIREWALL_RANGE
+      gceFirewallRange:
+        firewallProperty: enableIcmp
   input_domain:
     type: string
     pattern: '[a-zA-Z0-9-]+.[a-z]{2,}'
@@ -220,6 +249,12 @@ properties:
     type: string
     x-googleProperty:
       type: GCE_ZONE
+  enableStackdriverLogging:
+    type: boolean
+    default: True
+  enableStackdriverMonitoring:
+    type: boolean
+    default: False
 
 outputs:
   deployment:

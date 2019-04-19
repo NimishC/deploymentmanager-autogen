@@ -9,20 +9,22 @@ info:
 
 required:
   - zone
-  - network
   - main_instanceCount
   - main_machineType
   - main_bootDiskType
   - main_bootDiskSizeGb
+  - main_network
   - main_image
   - tier2_instanceCount
   - tier2_machineType
   - tier2_bootDiskType
   - tier2_bootDiskSizeGb
+  - tier2_network
   - tier3_instanceCount
   - tier3_machineType
   - tier3_bootDiskType
   - tier3_bootDiskSizeGb
+  - tier3_network
   - input_domain
   - input_adminEmailAddress
   - input_showConditionals
@@ -34,18 +36,6 @@ properties:
     default: us-west1-b
     x-googleProperty:
       type: GCE_ZONE
-  network:
-    type: string
-    default: default
-    x-googleProperty:
-      type: GCE_NETWORK
-  subnetwork:
-    type: string
-    x-googleProperty:
-      type: GCE_SUBNETWORK
-      zoneProperty: zone
-      gceSubnetwork:
-        networkProperty: network
   main_instanceCount:
     type: integer
     default: 3
@@ -66,12 +56,29 @@ properties:
       gceMachineType:
         minCpu: 1
         minRamGb: 1.7000000476837158
+  main_network:
+    type: string
+    default: default
+    x-googleProperty:
+      type: GCE_NETWORK
+      gceNetwork:
+        allowSharedVpcs: True
+        machineTypeProperty: main_machineType
+  main_subnetwork:
+    type: string
+    x-googleProperty:
+      type: GCE_SUBNETWORK
+      zoneProperty: zone
+      gceSubnetwork:
+        networkProperty: main_network
   main_externalIP:
     type: string
-    enum:
-      - Ephemeral
-      - None
-    default: None
+    default: NONE
+    x-googleProperty:
+      type: GCE_EXTERNAL_IP
+      gceExternalIp:
+        networkProperty: main_network
+        notConfigurable: False
   main_enableCloudReadonlyApi:
     type: boolean
     default: True
@@ -153,18 +160,42 @@ properties:
   main_enableTcp80:
     type: boolean
     default: True
+    x-googleProperty:
+      type: GCE_FIREWALL
+      gceFirewall:
+        networkProperty: main_network
   main_tcp80SourceRanges:
     type: string
+    x-googleProperty:
+      type: GCE_FIREWALL_RANGE
+      gceFirewallRange:
+        firewallProperty: main_enableTcp80
   main_enableTcp443:
     type: boolean
     default: True
+    x-googleProperty:
+      type: GCE_FIREWALL
+      gceFirewall:
+        networkProperty: main_network
   main_tcp443SourceRanges:
     type: string
+    x-googleProperty:
+      type: GCE_FIREWALL_RANGE
+      gceFirewallRange:
+        firewallProperty: main_enableTcp443
   main_enableUdp:
     type: boolean
     default: True
+    x-googleProperty:
+      type: GCE_FIREWALL
+      gceFirewall:
+        networkProperty: main_network
   main_udpSourceRanges:
     type: string
+    x-googleProperty:
+      type: GCE_FIREWALL_RANGE
+      gceFirewallRange:
+        firewallProperty: main_enableUdp
   tier2_instanceCount:
     type: integer
     default: 2
@@ -199,11 +230,29 @@ properties:
       type: GCE_GPU_COUNT
       gceGpuCount:
         machineTypeProperty: tier2_machineType
+  tier2_network:
+    type: string
+    default: default
+    x-googleProperty:
+      type: GCE_NETWORK
+      gceNetwork:
+        allowSharedVpcs: True
+        machineTypeProperty: tier2_machineType
+  tier2_subnetwork:
+    type: string
+    x-googleProperty:
+      type: GCE_SUBNETWORK
+      zoneProperty: zone
+      gceSubnetwork:
+        networkProperty: tier2_network
   tier2_externalIP:
     type: string
-    enum:
-      - Ephemeral
-    default: Ephemeral
+    default: EPHEMERAL
+    x-googleProperty:
+      type: GCE_EXTERNAL_IP
+      gceExternalIp:
+        networkProperty: tier2_network
+        notConfigurable: True
   tier2_bootDiskType:
     type: string
     default: pd-standard
@@ -251,12 +300,29 @@ properties:
       type: GCE_GPU_COUNT
       gceGpuCount:
         machineTypeProperty: tier3_machineType
+  tier3_network:
+    type: string
+    default: default
+    x-googleProperty:
+      type: GCE_NETWORK
+      gceNetwork:
+        allowSharedVpcs: True
+        machineTypeProperty: tier3_machineType
+  tier3_subnetwork:
+    type: string
+    x-googleProperty:
+      type: GCE_SUBNETWORK
+      zoneProperty: zone
+      gceSubnetwork:
+        networkProperty: tier3_network
   tier3_externalIP:
     type: string
-    enum:
-      - Ephemeral
-      - None
-    default: Ephemeral
+    default: EPHEMERAL
+    x-googleProperty:
+      type: GCE_EXTERNAL_IP
+      gceExternalIp:
+        networkProperty: tier3_network
+        notConfigurable: False
   tier3_bootDiskType:
     type: string
     default: pd-standard
@@ -322,6 +388,12 @@ properties:
     type: string
     x-googleProperty:
       type: GCE_ZONE
+  enableStackdriverLogging:
+    type: boolean
+    default: False
+  enableStackdriverMonitoring:
+    type: boolean
+    default: True
 
 outputs:
   deployment:

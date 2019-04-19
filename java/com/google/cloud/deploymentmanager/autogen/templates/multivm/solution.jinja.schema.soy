@@ -28,7 +28,6 @@ info:
 {\n}
 required:
   - zone
-  - network
 
   {for $tier in $spec.tiersList}
   {let $list kind="text"}{call .tierRequiredList}{param spec: $tier/}{/call}{/let}
@@ -50,14 +49,6 @@ properties:
   {/let}
   {$zoneProp |indent: 2, true}{nil}
 
-  {let $networkProps kind="text"}
-    {call renders.networkPropertiesSchema}
-      {param nameSuffix: 'network'/}
-      {param zonePropertyName: 'zone'/}
-    {/call}
-  {/let}
-  {$networkProps |indent: 2, true}{nil}
-
   {for $tier in $spec.tiersList}
   {let $tierProperties kind="text"}{call .tierProperties}{param spec: $tier/}{/call}{/let}
   {$tierProperties |indent: 2, true}{nil}
@@ -70,6 +61,15 @@ properties:
     {/call}
   {/let}
   {$deployInputProps |indent: 2, true}{nil}
+  {/if}
+
+  {if $spec.stackdriver}
+  {let $stackdriverPropertiesSchema kind="text"}
+    {call renders.stackdriverPropertiesSchema}
+      {param stackdriver: $spec.stackdriver/}
+    {/call}
+  {/let}
+  {$stackdriverPropertiesSchema |indent: 2, true}{nil}
   {/if}
 
 {\n}
@@ -92,6 +92,7 @@ outputs:
 - {'machineType' |tierprefixed: $spec}
 - {'bootDiskType' |tierprefixed: $spec}
 - {'bootDiskSizeGb' |tierprefixed: $spec}
+- {'network' |tierprefixed: $spec}
 {if length($spec.imagesList) > 1}
 - {'image' |tierprefixed: $spec}
 {/if}
@@ -139,6 +140,15 @@ outputs:
 {/let}
 {$acceleratorProps}{nil}
 {/if}
+
+{let $networkProps kind="text"}
+  {call renders.networkPropertiesSchema}
+    {param nameSuffix: 'network'/}
+    {param zonePropertyName: 'zone'/}
+    {param tier: $spec/}
+  {/call}
+{/let}
+{$networkProps}{nil}
 
 {let $externalIpProp kind="text"}
   {call renders.externalIpPropertySchema}
@@ -189,11 +199,7 @@ outputs:
 
 {for $firewallRule in $spec.firewallRulesList}
 {if $firewallRule.allowedSource == proto.FirewallRuleSpec.TrafficSource.PUBLIC}
-{call utilities.firewallRulePropName}{param spec: $firewallRule/}{param tierSpec: $spec/}{/call}:
-  type: boolean
-  default: {if $firewallRule.defaultOff}False{else}True{/if}
-{call utilities.firewallRuleSourceRangesPropName}{param spec: $firewallRule/}{param tierSpec: $spec/}{/call}:
-  type: string
+{call renders.firewallProps}{param spec: $firewallRule/}{param tierSpec: $spec/}{/call}
 {/if}
 {/for}
 {/template}

@@ -55,7 +55,7 @@ DEFAULT_AUTODELETE_BOOTDISK = True
 DEFAULT_STATIC_IP = False
 DEFAULT_HAS_EXTERNAL_IP = True
 DEFAULT_DATADISKSIZE = 500
-DEFAULT_ZONE = 'us-central1-f'
+DEFAULT_ZONE = 'us-east1-b'
 DEFAULT_PERSISTENT = 'PERSISTENT'
 DEFAULT_SERVICE_ACCOUNT = [{
     'email': 'default',
@@ -81,9 +81,9 @@ def MakeVMName(context):
   """Generates the VM name."""
   name = context.env['name']
   prop = context.properties
-  named = INSTANCE_NAME in prop
-  return prop[INSTANCE_NAME] if named else common.AutoName(name,
-                                                           default.INSTANCE)
+  if INSTANCE_NAME in prop:
+    return prop[INSTANCE_NAME]
+  return common.AutoName(name, default.INSTANCE)
 
 
 def GenerateComputeVM(context, create_disks_separately=True):
